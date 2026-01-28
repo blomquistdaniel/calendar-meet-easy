@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, X, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, X, Clock, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
@@ -92,6 +93,22 @@ const CreatePoll = () => {
       }
       return ts;
     }));
+  };
+
+  const copyTimeSlotsToDate = (sourceDate: Date, targetDate: Date) => {
+    const sourceSlot = timeSlots.find(ts => 
+      format(ts.date, "yyyy-MM-dd") === format(sourceDate, "yyyy-MM-dd")
+    );
+    if (!sourceSlot || sourceSlot.times.length === 0) return;
+
+    setTimeSlots(prev => prev.map(ts => {
+      if (format(ts.date, "yyyy-MM-dd") === format(targetDate, "yyyy-MM-dd")) {
+        const newTimes = [...new Set([...ts.times, ...sourceSlot.times])].sort();
+        return { ...ts, times: newTimes };
+      }
+      return ts;
+    }));
+    toast({ title: `Copied time slots to ${format(targetDate, "MMM d")}` });
   };
 
   const handleSubmit = async () => {
@@ -268,69 +285,105 @@ const CreatePoll = () => {
                         )}
                       </div>
 
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Clock className="h-4 w-4" />
-                            Add Time Slot
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-4" align="start">
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">Start</Label>
-                                <Input
-                                  type="time"
-                                  value={startTime}
-                                  onChange={(e) => setStartTime(e.target.value)}
-                                  className="w-28"
-                                />
-                              </div>
-                              <span className="mt-5 text-muted-foreground">–</span>
-                              <div className="space-y-1">
-                                <Label className="text-xs text-muted-foreground">End</Label>
-                                <Input
-                                  type="time"
-                                  value={endTime}
-                                  onChange={(e) => setEndTime(e.target.value)}
-                                  className="w-28"
-                                />
-                              </div>
-                            </div>
-                            {startTime && (
-                              <div className="flex flex-wrap gap-1">
-                                <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
-                                {[15, 30, 45, 60, 90, 120].map((minutes) => {
-                                  const calculateEndTime = () => {
-                                    const [h, m] = startTime.split(':').map(Number);
-                                    const totalMinutes = h * 60 + m + minutes;
-                                    const endH = Math.floor(totalMinutes / 60) % 24;
-                                    const endM = totalMinutes % 60;
-                                    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
-                                  };
-                                  return (
-                                    <Button
-                                      key={minutes}
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 px-2 text-xs"
-                                      onClick={() => setEndTime(calculateEndTime())}
-                                    >
-                                      {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
-                                    </Button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                            <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
-                              <Plus className="h-4 w-4" />
-                              Add
+                      <div className="flex gap-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2">
+                              <Clock className="h-4 w-4" />
+                              Add Time Slot
                             </Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-4" align="start">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-muted-foreground">Start</Label>
+                                  <Input
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    className="w-28"
+                                  />
+                                </div>
+                                <span className="mt-5 text-muted-foreground">–</span>
+                                <div className="space-y-1">
+                                  <Label className="text-xs text-muted-foreground">End</Label>
+                                  <Input
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    className="w-28"
+                                  />
+                                </div>
+                              </div>
+                              {startTime && (
+                                <div className="flex flex-wrap gap-1">
+                                  <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
+                                  {[15, 30, 45, 60, 90, 120].map((minutes) => {
+                                    const calculateEndTime = () => {
+                                      const [h, m] = startTime.split(':').map(Number);
+                                      const totalMinutes = h * 60 + m + minutes;
+                                      const endH = Math.floor(totalMinutes / 60) % 24;
+                                      const endM = totalMinutes % 60;
+                                      return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+                                    };
+                                    return (
+                                      <Button
+                                        key={minutes}
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 px-2 text-xs"
+                                        onClick={() => setEndTime(calculateEndTime())}
+                                      >
+                                        {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                                      </Button>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
+                                <Plus className="h-4 w-4" />
+                                Add
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        {ts.times.length > 0 && selectedDates.length > 1 && (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="gap-2">
+                                <Copy className="h-4 w-4" />
+                                Copy to...
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-3" align="start">
+                              <div className="space-y-2">
+                                <Label className="text-xs text-muted-foreground">Copy time slots to:</Label>
+                                {timeSlots
+                                  .filter(otherTs => format(otherTs.date, "yyyy-MM-dd") !== format(ts.date, "yyyy-MM-dd"))
+                                  .map((otherTs) => (
+                                    <div
+                                      key={format(otherTs.date, "yyyy-MM-dd")}
+                                      className="flex items-center justify-between py-1"
+                                    >
+                                      <span className="text-sm">{format(otherTs.date, "EEE, MMM d")}</span>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 px-2"
+                                        onClick={() => copyTimeSlotsToDate(ts.date, otherTs.date)}
+                                      >
+                                        Copy
+                                      </Button>
+                                    </div>
+                                  ))}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
