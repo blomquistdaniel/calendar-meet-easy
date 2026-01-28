@@ -188,7 +188,7 @@ const CreatePoll = () => {
             {/* Title & Description */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Meeting Details</CardTitle>
+                <CardTitle className="text-lg text-center">Meeting Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="space-y-1.5">
@@ -216,7 +216,7 @@ const CreatePoll = () => {
             {/* Calendar */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Select Dates</CardTitle>
+                <CardTitle className="text-lg text-center">Select Dates</CardTitle>
               </CardHeader>
               <CardContent className="flex justify-center">
                 <Calendar
