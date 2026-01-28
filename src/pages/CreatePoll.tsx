@@ -300,6 +300,7 @@ const CreatePoll = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
+
                       <div className="flex gap-2">
                         <Popover>
                           <PopoverTrigger asChild>
