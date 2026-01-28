@@ -182,9 +182,9 @@ const CreatePoll = () => {
           </p>
         </div>
 
-        <div className="space-y-6">
-          {/* Top Row: Meeting Details + Calendar */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column: Meeting Details + Calendar */}
+          <div className="space-y-6">
             {/* Title & Description */}
             <Card>
               <CardHeader className="pb-3">
@@ -248,15 +248,25 @@ const CreatePoll = () => {
                 />
               </CardContent>
             </Card>
+
+            {/* Submit Button */}
+            <Button 
+              onClick={handleSubmit} 
+              disabled={isSubmitting || !title.trim() || selectedDates.length === 0}
+              className="w-full"
+              size="lg"
+            >
+              {isSubmitting ? "Creating..." : "Create Poll"}
+            </Button>
           </div>
 
-          {/* Time Slots Grid - 2 columns */}
-          {selectedDates.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {timeSlots.map((ts) => (
-                    <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
+          {/* Right Column: Time Slots */}
+          <div className="space-y-4">
+            {selectedDates.length > 0 ? (
+              <>
+                <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
+                {timeSlots.map((ts) => (
+                  <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
                       <div className="flex items-center justify-between mb-3">
                         <span className="font-medium">{format(ts.date, "EEEE, MMMM d, yyyy")}</span>
                         <Button
@@ -386,19 +396,13 @@ const CreatePoll = () => {
                       </div>
                     </div>
                   ))}
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                <p>Select dates from the calendar to add time slots</p>
               </div>
-            </div>
-          )}
-
-          {/* Submit */}
-          <Button 
-            onClick={handleSubmit} 
-            disabled={isSubmitting || !title.trim() || selectedDates.length === 0}
-            className="w-full"
-            size="lg"
-          >
-            {isSubmitting ? "Creating..." : "Create Poll"}
-          </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
