@@ -184,8 +184,8 @@ const CreatePoll = () => {
 
       if (optionsError) throw optionsError;
 
-      // Navigate to share page with both poll ID and admin token
-      navigate(`/poll/${poll.id}/share?admin=${poll.admin_token}`);
+      // Navigate to share page with short_code and admin_short_code
+      navigate(`/p/${poll.short_code}/share?admin=${poll.admin_short_code}`);
     } catch (error) {
       console.error("Error creating poll:", error);
       toast({ title: "Failed to create poll", variant: "destructive" });

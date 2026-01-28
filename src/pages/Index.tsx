@@ -12,7 +12,8 @@ interface Poll {
   title: string;
   description: string | null;
   created_at: string;
-  admin_token: string;
+  short_code: string;
+  admin_short_code: string;
 }
 
 const Index = () => {
@@ -100,7 +101,7 @@ const Index = () => {
                           </p>
                         )}
                       </div>
-                      <Link to={`/poll/${poll.id}/results?token=${poll.admin_token}`}>
+                      <Link to={`/p/${poll.short_code}/results?admin=${poll.admin_short_code}`}>
                         <Button variant="ghost" size="icon" className="ml-4 shrink-0">
                           <Pencil className="h-4 w-4" />
                         </Button>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import PageNavigation from "@/components/PageNavigation";
 
 const ThankYou = () => {
-  const { pollId } = useParams<{ pollId: string }>();
+  const { code } = useParams<{ code: string }>();
 
   return (
     <div className="min-h-screen bg-background">
@@ -29,7 +29,7 @@ const ThankYou = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <Button asChild variant="outline" className="w-full">
-                <Link to={`/poll/${pollId}/vote`}>Change My Vote</Link>
+                <Link to={`/p/${code}/vote`}>Change My Vote</Link>
               </Button>
               <Button asChild variant="ghost" className="w-full">
                 <Link to="/">Create Your Own Poll</Link>

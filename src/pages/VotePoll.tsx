@@ -35,7 +35,7 @@ interface ExistingVote {
 }
 
 const VotePoll = () => {
-  const { pollId } = useParams<{ pollId: string }>();
+  const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   
   const [poll, setPoll] = useState<Poll | null>(null);
@@ -54,21 +54,29 @@ const VotePoll = () => {
 
   useEffect(() => {
     const fetchPoll = async () => {
-      if (!pollId) return;
+      if (!code) return;
 
-      const [pollResult, optionsResult] = await Promise.all([
-        supabase.from("polls").select("*").eq("id", pollId).single(),
-        supabase.from("poll_options").select("*").eq("poll_id", pollId).order("date").order("time_slot")
-      ]);
+      // First fetch the poll by short_code to get the ID
+      const pollResult = await supabase.from("polls").select("*").eq("short_code", code).maybeSingle();
 
-      if (pollResult.error) {
+      if (pollResult.error || !pollResult.data) {
         console.error("Error fetching poll:", pollResult.error);
         toast({ title: "Poll not found", variant: "destructive" });
         navigate("/");
         return;
       }
 
-      setPoll(pollResult.data);
+      const pollData = pollResult.data;
+      
+      // Now fetch options using the poll ID
+      const optionsResult = await supabase
+        .from("poll_options")
+        .select("*")
+        .eq("poll_id", pollData.id)
+        .order("date")
+        .order("time_slot");
+
+      setPoll(pollData);
       setOptions(optionsResult.data || []);
       
       // Initialize votes
@@ -82,17 +90,17 @@ const VotePoll = () => {
     };
 
     fetchPoll();
-  }, [pollId, navigate]);
+  }, [code, navigate]);
 
   const checkExistingVotes = useCallback(async (email: string) => {
-    if (!email.includes("@") || !pollId) return;
+    if (!email.includes("@") || !poll) return;
     
     setCheckingEmail(true);
     
     const { data, error } = await supabase
       .from("votes")
       .select("id, option_id, vote, comment, voter_name")
-      .eq("poll_id", pollId)
+      .eq("poll_id", poll.id)
       .eq("voter_email", email.trim().toLowerCase());
     
     setCheckingEmail(false);
@@ -112,7 +120,7 @@ const VotePoll = () => {
       setExistingVotes([]);
       setIsEditMode(false);
     }
-  }, [pollId]);
+  }, [poll]);
 
   const handleEmailBlur = () => {
     if (voterEmail.includes("@")) {
@@ -147,13 +155,15 @@ const VotePoll = () => {
       return;
     }
     
+    if (!poll) return;
+    
     setSubmitting(true);
     
     try {
       const { error } = await supabase
         .from("votes")
         .delete()
-        .eq("poll_id", pollId!)
+        .eq("poll_id", poll.id)
         .eq("voter_email", voterEmail.trim().toLowerCase());
       
       if (error) throw error;
@@ -207,7 +217,7 @@ const VotePoll = () => {
         const { error: deleteError } = await supabase
           .from("votes")
           .delete()
-          .eq("poll_id", pollId!)
+          .eq("poll_id", poll!.id)
           .eq("voter_email", normalizedEmail);
         
         if (deleteError) throw deleteError;
@@ -215,7 +225,7 @@ const VotePoll = () => {
       
       // Insert new votes
       const voteRecords = votesToSubmit.map(([optionId, vote]) => ({
-        poll_id: pollId!,
+        poll_id: poll!.id,
         option_id: optionId,
         voter_name: voterName.trim(),
         voter_email: normalizedEmail,
@@ -228,7 +238,7 @@ const VotePoll = () => {
       if (error) throw error;
 
       toast({ title: isEditMode ? "Votes updated successfully!" : "Vote submitted successfully!" });
-      navigate(`/poll/${pollId}/thanks`);
+      navigate(`/p/${code}/thanks`);
     } catch (error) {
       console.error("Error submitting vote:", error);
       toast({ title: "Failed to submit vote", variant: "destructive" });
