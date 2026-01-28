@@ -25,7 +25,8 @@ const CreatePoll = () => {
   const [description, setDescription] = useState("");
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [newTime, setNewTime] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -48,18 +49,40 @@ const CreatePoll = () => {
     }
   };
 
+  const formatTimeSlot = (start: string, end: string) => {
+    // Convert 24h to 12h format for display
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  };
+
   const addTimeToDate = (date: Date) => {
-    if (!newTime) return;
+    if (!startTime || !endTime) {
+      toast({ title: "Please enter both start and end times", variant: "destructive" });
+      return;
+    }
+    
+    if (startTime >= endTime) {
+      toast({ title: "End time must be after start time", variant: "destructive" });
+      return;
+    }
+    
+    const timeSlot = formatTimeSlot(startTime, endTime);
     
     setTimeSlots(prev => prev.map(ts => {
       if (format(ts.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")) {
-        if (!ts.times.includes(newTime)) {
-          return { ...ts, times: [...ts.times, newTime].sort() };
+        if (!ts.times.includes(timeSlot)) {
+          return { ...ts, times: [...ts.times, timeSlot].sort() };
         }
       }
       return ts;
     }));
-    setNewTime("");
+    setStartTime("");
+    setEndTime("");
   };
 
   const removeTimeFromDate = (date: Date, time: string) => {
@@ -253,15 +276,31 @@ const CreatePoll = () => {
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-4" align="start">
-                          <div className="flex gap-2">
-                            <Input
-                              type="time"
-                              value={newTime}
-                              onChange={(e) => setNewTime(e.target.value)}
-                              className="w-32"
-                            />
-                            <Button size="sm" onClick={() => addTimeToDate(ts.date)}>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-xs text-muted-foreground">Start</Label>
+                                <Input
+                                  type="time"
+                                  value={startTime}
+                                  onChange={(e) => setStartTime(e.target.value)}
+                                  className="w-28"
+                                />
+                              </div>
+                              <span className="mt-5 text-muted-foreground">–</span>
+                              <div className="space-y-1">
+                                <Label className="text-xs text-muted-foreground">End</Label>
+                                <Input
+                                  type="time"
+                                  value={endTime}
+                                  onChange={(e) => setEndTime(e.target.value)}
+                                  className="w-28"
+                                />
+                              </div>
+                            </div>
+                            <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
                               <Plus className="h-4 w-4" />
+                              Add
                             </Button>
                           </div>
                         </PopoverContent>
