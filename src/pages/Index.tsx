@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Search, BarChart3, Trash2 } from "lucide-react";
+import { Plus, Pencil, Search, BarChart3, Trash2, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -151,6 +151,22 @@ const Index = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-1 ml-4 shrink-0">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => {
+                                const votingUrl = `${window.location.origin}/p/${poll.short_code}/vote`;
+                                navigator.clipboard.writeText(votingUrl);
+                                toast({ title: "Voting link copied!" });
+                              }}
+                            >
+                              <Link2 className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Copy Voting Link</TooltipContent>
+                        </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Link to={`/p/${poll.short_code}/results?admin=${poll.admin_short_code}`}>
