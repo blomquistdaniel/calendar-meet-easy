@@ -270,33 +270,32 @@ const CreatePoll = () => {
                 <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
                 <div className="grid grid-cols-1 gap-3">
                 {timeSlots.map((ts) => (
-                  <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50 min-w-[280px]">
-                      <div className="flex items-center justify-between mb-3">
+                  <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
+                      <div className="flex items-center gap-2 mb-3 flex-wrap">
                         <span className="font-medium">{format(ts.date, "EEE, MMM d, yyyy")}</span>
+                        {ts.times.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">(All day)</span>
+                        ) : (
+                          ts.times.map((time) => (
+                            <Badge key={time} variant="secondary" className="gap-1">
+                              {time}
+                              <button
+                                onClick={() => removeTimeFromDate(ts.date, time)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="ml-auto h-7 w-7 p-0"
                           onClick={() => handleDateSelect(ts.date)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {ts.times.map((time) => (
-                          <Badge key={time} variant="secondary" className="gap-1">
-                            {time}
-                            <button
-                              onClick={() => removeTimeFromDate(ts.date, time)}
-                              className="ml-1 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                        {ts.times.length === 0 && (
-                          <span className="text-sm text-muted-foreground">All day (no specific times)</span>
-                        )}
                       </div>
 
                       <div className="flex gap-2">
