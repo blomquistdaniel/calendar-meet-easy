@@ -1,10 +1,22 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Search, BarChart3 } from "lucide-react";
+import { Plus, Pencil, Search, BarChart3, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
 
 interface Poll {
@@ -36,6 +48,42 @@ const Index = () => {
 
     fetchPolls();
   }, []);
+
+  const handleDeletePoll = async (pollId: string, pollTitle: string) => {
+    // First delete related votes and options, then the poll
+    const { error: votesError } = await supabase
+      .from("votes")
+      .delete()
+      .eq("poll_id", pollId);
+
+    if (votesError) {
+      toast({ title: "Failed to delete poll", description: votesError.message, variant: "destructive" });
+      return;
+    }
+
+    const { error: optionsError } = await supabase
+      .from("poll_options")
+      .delete()
+      .eq("poll_id", pollId);
+
+    if (optionsError) {
+      toast({ title: "Failed to delete poll", description: optionsError.message, variant: "destructive" });
+      return;
+    }
+
+    const { error: pollError } = await supabase
+      .from("polls")
+      .delete()
+      .eq("id", pollId);
+
+    if (pollError) {
+      toast({ title: "Failed to delete poll", description: pollError.message, variant: "destructive" });
+      return;
+    }
+
+    setPolls(polls.filter(p => p.id !== pollId));
+    toast({ title: "Poll deleted", description: `"${pollTitle}" has been deleted.` });
+  };
 
   const filteredPolls = polls.filter((poll) =>
     poll.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -110,6 +158,30 @@ const Index = () => {
                         <Button variant="ghost" size="icon" title="Edit Poll" disabled>
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" title="Delete Poll" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete poll?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete "{poll.title}" and all its votes. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeletePoll(poll.id, poll.title)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </CardContent>
                   </Card>
