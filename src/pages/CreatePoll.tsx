@@ -303,7 +303,7 @@ const CreatePoll = () => {
                           <PopoverTrigger asChild>
                             <Button variant="outline" size="sm" className="gap-2">
                               <Clock className="h-4 w-4" />
-                              Add Time Slot
+                              Add
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-4" align="start">
@@ -368,7 +368,7 @@ const CreatePoll = () => {
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="gap-2">
                                 <Copy className="h-4 w-4" />
-                                Copy to...
+                                Copy
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-56 p-3" align="start">
