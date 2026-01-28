@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreatePoll from "./pages/CreatePoll";
+import EditPoll from "./pages/EditPoll";
 import SharePoll from "./pages/SharePoll";
 import VotePoll from "./pages/VotePoll";
 import PollResults from "./pages/PollResults";
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/create" element={<CreatePoll />} />
+          <Route path="/p/:code/edit" element={<EditPoll />} />
           <Route path="/p/:code/share" element={<SharePoll />} />
           <Route path="/p/:code/vote" element={<VotePoll />} />
           <Route path="/p/:code/results" element={<PollResults />} />
