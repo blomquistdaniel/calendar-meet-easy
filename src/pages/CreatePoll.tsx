@@ -248,7 +248,7 @@ const CreatePoll = () => {
                   mode="multiple"
                   selected={selectedDates}
                   weekStartsOn={1}
-                  className="rounded-md border pointer-events-auto w-full scale-110 origin-center my-2"
+                  className="rounded-md border pointer-events-auto w-full scale-[1.15] origin-center my-4"
                   onSelect={(dates) => {
                     if (!dates) return;
                     const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
