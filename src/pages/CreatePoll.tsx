@@ -273,7 +273,8 @@ const CreatePoll = () => {
                   <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
                       <div className="flex items-start gap-3 mb-3">
                         <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
-                        <div className="flex-1 flex flex-wrap gap-1.5 min-w-0">
+                        <div className="flex-1" />
+                        <div className="flex flex-col items-end gap-1.5">
                           {ts.times.length === 0 ? (
                             <span className="text-sm text-muted-foreground">(All day)</span>
                           ) : (
