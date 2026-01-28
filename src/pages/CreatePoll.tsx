@@ -175,23 +175,26 @@ const CreatePoll = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl py-8 px-4">
+        <div className="mb-8">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Home className="h-4 w-4" />
+              Home
+            </Button>
+          </Link>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Meeting Details + Calendar */}
           <div className="space-y-6">
             {/* Title & Description */}
-            <div className="flex items-start gap-3">
-              <Link to="/">
-                <Button variant="ghost" size="icon" className="h-8 w-8 mt-1">
-                  <Home className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Card className="flex-1">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-center">Meeting Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="title">Title *</Label>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg text-center">Meeting Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     placeholder="e.g., Team Standup Planning"
@@ -211,7 +214,6 @@ const CreatePoll = () => {
                 </div>
               </CardContent>
             </Card>
-            </div>
 
             {/* Calendar */}
             <Card>
