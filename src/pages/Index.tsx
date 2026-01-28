@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -150,22 +151,37 @@ const Index = () => {
                         )}
                       </div>
                       <div className="flex items-center gap-1 ml-4 shrink-0">
-                        <Link to={`/p/${poll.short_code}/results?admin=${poll.admin_short_code}`}>
-                          <Button variant="ghost" size="icon" title="View Results">
-                            <BarChart3 className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Link to={`/p/${poll.short_code}/edit?admin=${poll.admin_short_code}`}>
-                          <Button variant="ghost" size="icon" title="Edit Poll">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link to={`/p/${poll.short_code}/results?admin=${poll.admin_short_code}`}>
+                              <Button variant="ghost" size="icon">
+                                <BarChart3 className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>View Results</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link to={`/p/${poll.short_code}/edit?admin=${poll.admin_short_code}`}>
+                              <Button variant="ghost" size="icon">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit Poll</TooltipContent>
+                        </Tooltip>
                         <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" title="Delete Poll" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete Poll</TooltipContent>
+                          </Tooltip>
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete poll?</AlertDialogTitle>
