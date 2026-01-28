@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { Check, X, HelpCircle, Crown, MessageSquare, Users, RefreshCw } from "lucide-react";
+import { Check, X, HelpCircle, Crown, MessageSquare, Users, RefreshCw, Link2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -184,10 +184,25 @@ const PollResults = () => {
                   <p className="text-muted-foreground mt-2">{poll.description}</p>
                 )}
               </div>
-              <Button variant="outline" size="sm" onClick={fetchData} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  onClick={() => {
+                    const votingUrl = `${window.location.origin}/p/${code}/vote`;
+                    navigator.clipboard.writeText(votingUrl);
+                    toast({ title: "Voting link copied!" });
+                  }}
+                >
+                  <Link2 className="h-4 w-4" />
+                  Copy Voting Link
+                </Button>
+                <Button variant="outline" size="sm" onClick={fetchData} className="gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
             </div>
 
         {/* Stats */}
