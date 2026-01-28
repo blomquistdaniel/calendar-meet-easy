@@ -271,26 +271,9 @@ const CreatePoll = () => {
                 <div className="grid grid-cols-1 gap-3">
                 {timeSlots.map((ts) => (
                   <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-start gap-3 mb-3">
+                      <div className="flex items-center gap-3 mb-3">
                         <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
                         <div className="flex-1" />
-                        <div className="flex flex-col items-end gap-1.5">
-                          {ts.times.length === 0 ? (
-                            <span className="text-sm text-muted-foreground">(All day)</span>
-                          ) : (
-                            ts.times.map((time) => (
-                              <Badge key={time} variant="secondary" className="gap-1">
-                                {time}
-                                <button
-                                  onClick={() => removeTimeFromDate(ts.date, time)}
-                                  className="ml-1 hover:text-destructive"
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ))
-                          )}
-                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -300,6 +283,22 @@ const CreatePoll = () => {
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
+
+                      {ts.times.length > 0 && (
+                        <div className="flex flex-wrap justify-end gap-1.5 mb-3">
+                          {ts.times.map((time) => (
+                            <Badge key={time} variant="secondary" className="gap-1">
+                              {time}
+                              <button
+                                onClick={() => removeTimeFromDate(ts.date, time)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
 
                       <div className="flex gap-2">
                         <Popover>
