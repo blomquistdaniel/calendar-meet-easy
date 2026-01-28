@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import PageNavigation from "@/components/PageNavigation";
 
 const SharePoll = () => {
   const { pollId } = useParams<{ pollId: string }>();
@@ -69,16 +69,22 @@ const SharePoll = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-2xl py-8 px-4">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-            <Check className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">Poll Created!</h1>
-          {poll && (
-            <p className="text-muted-foreground mt-2">"{poll.title}" is ready to share</p>
-          )}
-        </div>
+      <div className="container max-w-4xl py-8 px-4">
+        <div className="flex gap-6 items-start">
+          {/* Navigation buttons */}
+          <PageNavigation className="shrink-0" />
+
+          {/* Main content */}
+          <div className="flex-1 max-w-2xl">
+            <div className="mb-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                <Check className="h-8 w-8 text-primary" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight">Poll Created!</h1>
+              {poll && (
+                <p className="text-muted-foreground mt-2">"{poll.title}" is ready to share</p>
+              )}
+            </div>
 
         <div className="space-y-6">
           {/* Voting Link */}
@@ -145,6 +151,8 @@ const SharePoll = () => {
             <Button asChild variant="ghost">
               <Link to="/">Create Another Poll</Link>
             </Button>
+          </div>
+        </div>
           </div>
         </div>
       </div>
