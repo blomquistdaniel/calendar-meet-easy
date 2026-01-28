@@ -9,11 +9,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
-import { getTimezoneLabel } from "@/lib/timezones";
-
+import { getTimezoneLabel, getBrowserTimezone, convertTimeSlot } from "@/lib/timezones";
 type VoteValue = "yes" | "no" | "maybe" | null;
 
 interface PollOption {
@@ -53,6 +53,10 @@ const VotePoll = () => {
   
   const [existingVotes, setExistingVotes] = useState<ExistingVote[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [useLocalTimezone, setUseLocalTimezone] = useState(false);
+  
+  const browserTimezone = getBrowserTimezone();
+  const displayTimezone = useLocalTimezone ? browserTimezone : poll?.timezone || "UTC";
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -283,9 +287,23 @@ const VotePoll = () => {
               {poll.description && (
                 <p className="text-muted-foreground mt-2">{poll.description}</p>
               )}
-              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                <Globe className="h-4 w-4" />
-                <span>Times shown in {getTimezoneLabel(poll.timezone)}</span>
+              <div className="flex items-center justify-between mt-3 p-3 rounded-lg bg-muted/30">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Globe className="h-4 w-4" />
+                  <span>Times shown in {getTimezoneLabel(displayTimezone)}</span>
+                </div>
+                {browserTimezone !== poll.timezone && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="timezone-toggle" className="text-sm text-muted-foreground cursor-pointer">
+                      Show in my timezone
+                    </Label>
+                    <Switch
+                      id="timezone-toggle"
+                      checked={useLocalTimezone}
+                      onCheckedChange={setUseLocalTimezone}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -378,14 +396,18 @@ const VotePoll = () => {
                       </h4>
                       
                       {dateOptions.map((option) => (
-                        <div key={option.id} className="space-y-2">
+                          <div key={option.id} className="space-y-2">
                           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                             <div className="flex-1">
                               <span className="font-medium">
-                                {option.time_slot || "All day"}
+                                {option.time_slot 
+                                  ? (useLocalTimezone && poll.timezone !== browserTimezone
+                                      ? convertTimeSlot(option.time_slot, option.date, poll.timezone, browserTimezone)
+                                      : option.time_slot)
+                                  : "All day"}
                               </span>
                             </div>
-                            
+
                             <div className="flex gap-1">
                               <Button
                                 type="button"
