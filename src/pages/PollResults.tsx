@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import PageNavigation from "@/components/PageNavigation";
 
 interface Poll {
   id: string;
@@ -155,20 +156,26 @@ const PollResults = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-6xl py-8 px-4">
-        {/* Header */}
-        <div className="mb-8 flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{poll.title}</h1>
-            {poll.description && (
-              <p className="text-muted-foreground mt-2">{poll.description}</p>
-            )}
-          </div>
-          <Button variant="outline" size="sm" onClick={fetchData} className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-        </div>
+      <div className="container max-w-7xl py-8 px-4">
+        <div className="flex gap-6 items-start">
+          {/* Navigation buttons */}
+          <PageNavigation className="shrink-0" />
+
+          {/* Main content */}
+          <div className="flex-1 max-w-6xl">
+            {/* Header */}
+            <div className="mb-8 flex items-start justify-between">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">{poll.title}</h1>
+                {poll.description && (
+                  <p className="text-muted-foreground mt-2">{poll.description}</p>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={fetchData} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-3 mb-8">
@@ -334,6 +341,8 @@ const PollResults = () => {
           <Button asChild variant="ghost">
             <Link to="/">Create New Poll</Link>
           </Button>
+        </div>
+          </div>
         </div>
       </div>
     </div>

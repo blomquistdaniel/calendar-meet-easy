@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import PageNavigation from "@/components/PageNavigation";
 
 type VoteValue = "yes" | "no" | "maybe" | null;
 
@@ -257,14 +258,20 @@ const VotePoll = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-3xl py-8 px-4">
-        {/* Poll Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">{poll.title}</h1>
-          {poll.description && (
-            <p className="text-muted-foreground mt-2">{poll.description}</p>
-          )}
-        </div>
+      <div className="container max-w-4xl py-8 px-4">
+        <div className="flex gap-6 items-start">
+          {/* Navigation buttons */}
+          <PageNavigation className="shrink-0" />
+
+          {/* Main content */}
+          <div className="flex-1 max-w-3xl">
+            {/* Poll Header */}
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">{poll.title}</h1>
+              {poll.description && (
+                <p className="text-muted-foreground mt-2">{poll.description}</p>
+              )}
+            </div>
 
         <div className="space-y-6">
           {/* Voter Info */}
@@ -452,6 +459,8 @@ const VotePoll = () => {
               </div>
             </>
           )}
+        </div>
+          </div>
         </div>
       </div>
     </div>

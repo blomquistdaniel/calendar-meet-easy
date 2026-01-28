@@ -1,19 +1,18 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, X, Clock, Copy, Home } from "lucide-react";
+import { Plus, X, Clock, Copy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import PageNavigation from "@/components/PageNavigation";
 
 interface TimeSlot {
   date: Date;
@@ -198,16 +197,12 @@ const CreatePoll = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl py-8 px-4">
-        <div className="mb-8">
-          <Link to="/">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Home className="h-4 w-4" />
-              Home
-            </Button>
-          </Link>
-        </div>
+        <div className="flex gap-6 items-start max-w-4xl">
+          {/* Navigation buttons - aligned with top of cards */}
+          <PageNavigation className="shrink-0 pt-0" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl">
+          {/* Main content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
           {/* Left Column: Meeting Details + Calendar */}
           <div className="space-y-6">
             {/* Title & Description */}
@@ -423,6 +418,7 @@ const CreatePoll = () => {
                 <p>Select dates from the calendar to add time slots</p>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>
