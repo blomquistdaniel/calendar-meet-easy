@@ -22,10 +22,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/create" element={<CreatePoll />} />
-          <Route path="/poll/:pollId/share" element={<SharePoll />} />
-          <Route path="/poll/:pollId/vote" element={<VotePoll />} />
-          <Route path="/poll/:pollId/results" element={<PollResults />} />
-          <Route path="/poll/:pollId/thanks" element={<ThankYou />} />
+          <Route path="/p/:code/share" element={<SharePoll />} />
+          <Route path="/p/:code/vote" element={<VotePoll />} />
+          <Route path="/p/:code/results" element={<PollResults />} />
+          <Route path="/p/:code/thanks" element={<ThankYou />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

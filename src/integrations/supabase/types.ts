@@ -48,24 +48,30 @@ export type Database = {
       }
       polls: {
         Row: {
+          admin_short_code: string
           admin_token: string
           created_at: string
           description: string | null
           id: string
+          short_code: string
           title: string
         }
         Insert: {
+          admin_short_code?: string
           admin_token?: string
           created_at?: string
           description?: string | null
           id?: string
+          short_code?: string
           title: string
         }
         Update: {
+          admin_short_code?: string
           admin_token?: string
           created_at?: string
           description?: string | null
           id?: string
+          short_code?: string
           title?: string
         }
         Relationships: []
@@ -123,7 +129,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_short_code: { Args: { length?: number }; Returns: string }
     }
     Enums: {
       [_ in never]: never

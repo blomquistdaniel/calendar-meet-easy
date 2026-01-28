@@ -35,10 +35,10 @@ interface Vote {
 }
 
 const PollResults = () => {
-  const { pollId } = useParams<{ pollId: string }>();
+  const { code } = useParams<{ code: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const adminToken = searchParams.get("admin");
+  const adminCode = searchParams.get("admin");
 
   const [poll, setPoll] = useState<Poll | null>(null);
   const [options, setOptions] = useState<PollOption[]>([]);
@@ -47,29 +47,34 @@ const PollResults = () => {
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   const fetchData = async () => {
-    if (!pollId) return;
+    if (!code) return;
 
-    const [pollResult, optionsResult, votesResult] = await Promise.all([
-      supabase.from("polls").select("*").eq("id", pollId).single(),
-      supabase.from("poll_options").select("*").eq("poll_id", pollId).order("date").order("time_slot"),
-      supabase.from("votes").select("*").eq("poll_id", pollId)
-    ]);
+    // First fetch the poll by short_code
+    const pollResult = await supabase.from("polls").select("*").eq("short_code", code).maybeSingle();
 
-    if (pollResult.error) {
+    if (pollResult.error || !pollResult.data) {
       toast({ title: "Poll not found", variant: "destructive" });
       navigate("/");
       return;
     }
 
-    // Verify admin token
-    if (pollResult.data.admin_token !== adminToken) {
+    // Verify admin code
+    if (pollResult.data.admin_short_code !== adminCode) {
       setIsAuthorized(false);
       setLoading(false);
       return;
     }
 
+    const pollData = pollResult.data;
+
+    // Fetch options and votes using poll ID
+    const [optionsResult, votesResult] = await Promise.all([
+      supabase.from("poll_options").select("*").eq("poll_id", pollData.id).order("date").order("time_slot"),
+      supabase.from("votes").select("*").eq("poll_id", pollData.id)
+    ]);
+
     setIsAuthorized(true);
-    setPoll(pollResult.data);
+    setPoll(pollData);
     setOptions(optionsResult.data || []);
     setVotes((votesResult.data || []) as Vote[]);
     setLoading(false);
@@ -78,22 +83,30 @@ const PollResults = () => {
   useEffect(() => {
     fetchData();
 
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`votes-${pollId}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "votes", filter: `poll_id=eq.${pollId}` },
-        () => {
-          fetchData();
-        }
-      )
-      .subscribe();
+    // Subscribe to realtime updates - need to get poll ID first
+    const setupRealtime = async () => {
+      if (!code) return;
+      const { data } = await supabase.from("polls").select("id").eq("short_code", code).maybeSingle();
+      if (!data) return;
+      
+      const channel = supabase
+        .channel(`votes-${data.id}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "votes", filter: `poll_id=eq.${data.id}` },
+          () => {
+            fetchData();
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
+      return () => {
+        supabase.removeChannel(channel);
+      };
     };
-  }, [pollId, adminToken]);
+
+    setupRealtime();
+  }, [code, adminCode]);
 
   if (loading) {
     return (
@@ -336,7 +349,7 @@ const PollResults = () => {
         {/* Actions */}
         <div className="flex justify-center gap-4 mt-8">
           <Button asChild variant="outline">
-            <Link to={`/poll/${pollId}/vote`}>View Voting Page</Link>
+            <Link to={`/p/${code}/vote`}>View Voting Page</Link>
           </Button>
           <Button asChild variant="ghost">
             <Link to="/">Create New Poll</Link>

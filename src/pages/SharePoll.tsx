@@ -9,39 +9,39 @@ import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
 
 const SharePoll = () => {
-  const { pollId } = useParams<{ pollId: string }>();
+  const { code } = useParams<{ code: string }>();
   const [searchParams] = useSearchParams();
-  const adminToken = searchParams.get("admin");
+  const adminCode = searchParams.get("admin");
   
-  const [poll, setPoll] = useState<{ title: string; description: string | null } | null>(null);
+  const [poll, setPoll] = useState<{ title: string; description: string | null; short_code: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedVoting, setCopiedVoting] = useState(false);
   const [copiedAdmin, setCopiedAdmin] = useState(false);
 
   const baseUrl = window.location.origin;
-  const votingLink = `${baseUrl}/poll/${pollId}/vote`;
-  const adminLink = `${baseUrl}/poll/${pollId}/results?admin=${adminToken}`;
+  const votingLink = `${baseUrl}/p/${code}/vote`;
+  const adminLink = `${baseUrl}/p/${code}/results?admin=${adminCode}`;
 
   useEffect(() => {
     const fetchPoll = async () => {
-      if (!pollId) return;
+      if (!code) return;
       
       const { data, error } = await supabase
         .from("polls")
-        .select("title, description")
-        .eq("id", pollId)
-        .single();
+        .select("title, description, short_code")
+        .eq("short_code", code)
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching poll:", error);
-      } else {
+      } else if (data) {
         setPoll(data);
       }
       setLoading(false);
     };
 
     fetchPoll();
-  }, [pollId]);
+  }, [code]);
 
   const copyToClipboard = async (text: string, type: "voting" | "admin") => {
     try {
@@ -110,7 +110,7 @@ const SharePoll = () => {
                 </Button>
               </div>
               <Button asChild variant="secondary" className="w-full">
-                <Link to={`/poll/${pollId}/vote`}>
+                <Link to={`/p/${code}/vote`}>
                   Preview Voting Page
                 </Link>
               </Button>
@@ -139,7 +139,7 @@ const SharePoll = () => {
                 </Button>
               </div>
               <Button asChild className="w-full">
-                <Link to={`/poll/${pollId}/results?admin=${adminToken}`}>
+                <Link to={`/p/${code}/results?admin=${adminCode}`}>
                   View Results Dashboard
                 </Link>
               </Button>
