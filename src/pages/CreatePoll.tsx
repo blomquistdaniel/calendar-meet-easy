@@ -294,7 +294,7 @@ const CreatePoll = () => {
                 <div className="grid grid-cols-1 gap-3">
                 {timeSlots.map((ts) => (
                   <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-start gap-4">
+                      <div className="flex items-start gap-2">
                         {/* Left column: Date + Buttons */}
                         <div className="flex flex-col gap-3">
                           <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
