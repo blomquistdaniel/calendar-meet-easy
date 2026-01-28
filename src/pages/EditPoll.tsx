@@ -1,0 +1,547 @@
+import { useState, useEffect } from "react";
+import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
+import { format, parseISO } from "date-fns";
+import { Plus, X, Clock, Copy, Save } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
+import PageNavigation from "@/components/PageNavigation";
+
+interface TimeSlot {
+  date: Date;
+  times: string[];
+}
+
+interface PollOption {
+  id: string;
+  date: string;
+  time_slot: string | null;
+}
+
+const EditPoll = () => {
+  const { code } = useParams<{ code: string }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const adminCode = searchParams.get("admin");
+
+  const [pollId, setPollId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [existingOptions, setExistingOptions] = useState<PollOption[]>([]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [lastDuration, setLastDuration] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const fetchPoll = async () => {
+      if (!code) return;
+
+      const { data: poll, error } = await supabase
+        .from("polls")
+        .select("*")
+        .eq("short_code", code)
+        .maybeSingle();
+
+      if (error || !poll) {
+        toast({ title: "Poll not found", variant: "destructive" });
+        navigate("/");
+        return;
+      }
+
+      if (poll.admin_short_code !== adminCode) {
+        setIsAuthorized(false);
+        setLoading(false);
+        return;
+      }
+
+      setPollId(poll.id);
+      setTitle(poll.title);
+      setDescription(poll.description || "");
+
+      // Fetch existing options
+      const { data: options } = await supabase
+        .from("poll_options")
+        .select("*")
+        .eq("poll_id", poll.id)
+        .order("date")
+        .order("time_slot");
+
+      if (options) {
+        setExistingOptions(options);
+        
+        // Convert options to dates and time slots
+        const dateMap = new Map<string, string[]>();
+        for (const opt of options) {
+          const existing = dateMap.get(opt.date) || [];
+          if (opt.time_slot) {
+            existing.push(opt.time_slot);
+          }
+          dateMap.set(opt.date, existing);
+        }
+
+        const dates: Date[] = [];
+        const slots: TimeSlot[] = [];
+        for (const [dateStr, times] of dateMap) {
+          const date = parseISO(dateStr);
+          dates.push(date);
+          slots.push({ date, times });
+        }
+
+        setSelectedDates(dates.sort((a, b) => a.getTime() - b.getTime()));
+        setTimeSlots(slots);
+      }
+
+      setIsAuthorized(true);
+      setLoading(false);
+    };
+
+    fetchPoll();
+  }, [code, adminCode, navigate]);
+
+  const calculateEndTime = (start: string, minutes: number) => {
+    if (!start) return "";
+    const [h, m] = start.split(':').map(Number);
+    const totalMinutes = h * 60 + m + minutes;
+    const endH = Math.floor(totalMinutes / 60) % 24;
+    const endM = totalMinutes % 60;
+    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+  };
+
+  const handleStartTimeChange = (value: string) => {
+    setStartTime(value);
+    if (value && lastDuration) {
+      setEndTime(calculateEndTime(value, lastDuration));
+    }
+  };
+
+  const handleDurationClick = (minutes: number) => {
+    setLastDuration(minutes);
+    setEndTime(calculateEndTime(startTime, minutes));
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date) return;
+    
+    const exists = selectedDates.some(d => 
+      format(d, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
+    );
+    
+    if (exists) {
+      setSelectedDates(prev => prev.filter(d => 
+        format(d, "yyyy-MM-dd") !== format(date, "yyyy-MM-dd")
+      ));
+      setTimeSlots(prev => prev.filter(ts => 
+        format(ts.date, "yyyy-MM-dd") !== format(date, "yyyy-MM-dd")
+      ));
+    } else {
+      setSelectedDates(prev => [...prev, date].sort((a, b) => a.getTime() - b.getTime()));
+      setTimeSlots(prev => [...prev, { date, times: [] }]);
+    }
+  };
+
+  const formatTimeSlot = (start: string, end: string) => {
+    const formatTime = (time: string) => {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+    };
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  };
+
+  const addTimeToDate = (date: Date) => {
+    if (!startTime || !endTime) {
+      toast({ title: "Please enter both start and end times", variant: "destructive" });
+      return;
+    }
+    
+    if (startTime >= endTime) {
+      toast({ title: "End time must be after start time", variant: "destructive" });
+      return;
+    }
+    
+    const timeSlot = formatTimeSlot(startTime, endTime);
+    
+    setTimeSlots(prev => prev.map(ts => {
+      if (format(ts.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")) {
+        if (!ts.times.includes(timeSlot)) {
+          return { ...ts, times: [...ts.times, timeSlot].sort() };
+        }
+      }
+      return ts;
+    }));
+    setStartTime("");
+    setEndTime("");
+  };
+
+  const removeTimeFromDate = (date: Date, time: string) => {
+    setTimeSlots(prev => prev.map(ts => {
+      if (format(ts.date, "yyyy-MM-dd") === format(date, "yyyy-MM-dd")) {
+        return { ...ts, times: ts.times.filter(t => t !== time) };
+      }
+      return ts;
+    }));
+  };
+
+  const copyTimeSlotsToDate = (sourceDate: Date, targetDate: Date) => {
+    const sourceSlot = timeSlots.find(ts => 
+      format(ts.date, "yyyy-MM-dd") === format(sourceDate, "yyyy-MM-dd")
+    );
+    if (!sourceSlot || sourceSlot.times.length === 0) return;
+
+    setTimeSlots(prev => prev.map(ts => {
+      if (format(ts.date, "yyyy-MM-dd") === format(targetDate, "yyyy-MM-dd")) {
+        const newTimes = [...new Set([...ts.times, ...sourceSlot.times])].sort();
+        return { ...ts, times: newTimes };
+      }
+      return ts;
+    }));
+    toast({ title: `Copied time slots to ${format(targetDate, "MMM d")}` });
+  };
+
+  const handleSubmit = async () => {
+    if (!pollId) return;
+    
+    if (!title.trim()) {
+      toast({ title: "Please enter a title", variant: "destructive" });
+      return;
+    }
+    if (selectedDates.length === 0) {
+      toast({ title: "Please select at least one date", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Update poll details
+      const { error: pollError } = await supabase
+        .from("polls")
+        .update({ title: title.trim(), description: description.trim() || null })
+        .eq("id", pollId);
+
+      if (pollError) throw pollError;
+
+      // Build new options list
+      const newOptions: { poll_id: string; date: string; time_slot: string | null }[] = [];
+      
+      for (const ts of timeSlots) {
+        if (ts.times.length === 0) {
+          newOptions.push({
+            poll_id: pollId,
+            date: format(ts.date, "yyyy-MM-dd"),
+            time_slot: null
+          });
+        } else {
+          for (const time of ts.times) {
+            newOptions.push({
+              poll_id: pollId,
+              date: format(ts.date, "yyyy-MM-dd"),
+              time_slot: time
+            });
+          }
+        }
+      }
+
+      // Find options to delete (existing but not in new list)
+      const newOptionKeys = new Set(newOptions.map(o => `${o.date}|${o.time_slot || ''}`));
+      const optionsToDelete = existingOptions.filter(o => 
+        !newOptionKeys.has(`${o.date}|${o.time_slot || ''}`)
+      );
+
+      // Find options to add (new but not in existing)
+      const existingOptionKeys = new Set(existingOptions.map(o => `${o.date}|${o.time_slot || ''}`));
+      const optionsToAdd = newOptions.filter(o => 
+        !existingOptionKeys.has(`${o.date}|${o.time_slot || ''}`)
+      );
+
+      // Delete removed options (and their votes)
+      for (const opt of optionsToDelete) {
+        await supabase.from("votes").delete().eq("option_id", opt.id);
+        await supabase.from("poll_options").delete().eq("id", opt.id);
+      }
+
+      // Add new options
+      if (optionsToAdd.length > 0) {
+        const { error: optionsError } = await supabase
+          .from("poll_options")
+          .insert(optionsToAdd);
+
+        if (optionsError) throw optionsError;
+      }
+
+      toast({ title: "Poll updated successfully!" });
+      navigate(`/p/${code}/results?admin=${adminCode}`);
+    } catch (error) {
+      console.error("Error updating poll:", error);
+      toast({ title: "Failed to update poll", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading poll...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              You need the admin link to edit this poll.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link to="/">Go Home</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container max-w-6xl py-8 px-4">
+        <div className="flex gap-6 items-start">
+          <PageNavigation className="shrink-0 pt-0" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-w-0">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-center">Edit Meeting Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="title">Title *</Label>
+                    <Input
+                      id="title"
+                      placeholder="e.g., Team Standup Planning"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="description">Description (optional)</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Add any details about the meeting..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-center">Select Dates</CardTitle>
+                </CardHeader>
+                <CardContent className="px-4">
+                  <Calendar
+                    mode="multiple"
+                    selected={selectedDates}
+                    weekStartsOn={1}
+                    className="rounded-md border pointer-events-auto w-full"
+                    onSelect={(dates) => {
+                      if (!dates) return;
+                      const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
+                      const newSet = new Set(dates.map(d => format(d, "yyyy-MM-dd")));
+                      
+                      for (const d of dates) {
+                        const key = format(d, "yyyy-MM-dd");
+                        if (!prevSet.has(key)) {
+                          handleDateSelect(d);
+                          return;
+                        }
+                      }
+                      
+                      for (const d of selectedDates) {
+                        const key = format(d, "yyyy-MM-dd");
+                        if (!newSet.has(key)) {
+                          handleDateSelect(d);
+                          return;
+                        }
+                      }
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Button 
+                onClick={handleSubmit} 
+                disabled={isSubmitting || !title.trim() || selectedDates.length === 0}
+                className="w-full gap-2"
+                size="lg"
+              >
+                <Save className="h-4 w-4" />
+                {isSubmitting ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              {selectedDates.length > 0 ? (
+                <>
+                  <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
+                  <div className="grid grid-cols-1 gap-3">
+                    {timeSlots.map((ts) => (
+                      <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
+                        <div className="flex items-start gap-2">
+                          <div className="flex flex-col gap-3">
+                            <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
+                            <div className="flex gap-2">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-2 w-20">
+                                    <Clock className="h-4 w-4" />
+                                    Add
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-4" align="start">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className="space-y-1">
+                                        <Label className="text-xs text-muted-foreground">Start</Label>
+                                        <Input
+                                          type="time"
+                                          value={startTime}
+                                          onChange={(e) => handleStartTimeChange(e.target.value)}
+                                          className="w-28"
+                                        />
+                                      </div>
+                                      <span className="mt-5 text-muted-foreground">–</span>
+                                      <div className="space-y-1">
+                                        <Label className="text-xs text-muted-foreground">End</Label>
+                                        <Input
+                                          type="time"
+                                          value={endTime}
+                                          onChange={(e) => setEndTime(e.target.value)}
+                                          className="w-28"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1">
+                                      <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
+                                      {[15, 30, 45, 60, 90, 120].map((minutes) => (
+                                        <Button
+                                          key={minutes}
+                                          type="button"
+                                          variant={lastDuration === minutes ? "default" : "outline"}
+                                          size="sm"
+                                          className="h-7 px-2 text-xs"
+                                          disabled={!startTime}
+                                          onClick={() => handleDurationClick(minutes)}
+                                        >
+                                          {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                                        </Button>
+                                      ))}
+                                    </div>
+                                    <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
+                                      <Plus className="h-4 w-4" />
+                                      Add
+                                    </Button>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+
+                              {ts.times.length > 0 && selectedDates.length > 1 && (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button variant="outline" size="sm" className="gap-2 w-20">
+                                      <Copy className="h-4 w-4" />
+                                      Copy
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-56 p-3" align="start">
+                                    <div className="space-y-2">
+                                      <Label className="text-xs text-muted-foreground">Copy time slots to:</Label>
+                                      {timeSlots
+                                        .filter(otherTs => format(otherTs.date, "yyyy-MM-dd") !== format(ts.date, "yyyy-MM-dd"))
+                                        .map((otherTs) => (
+                                          <div
+                                            key={format(otherTs.date, "yyyy-MM-dd")}
+                                            className="flex items-center justify-between py-1"
+                                          >
+                                            <span className="text-sm">{format(otherTs.date, "EEE, MMM d")}</span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              className="h-7 px-2"
+                                              onClick={() => copyTimeSlotsToDate(ts.date, otherTs.date)}
+                                            >
+                                              Copy
+                                            </Button>
+                                          </div>
+                                        ))}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex-1 flex flex-col items-end gap-1.5">
+                            {ts.times.map((time) => (
+                              <Badge key={time} variant="secondary" className="gap-1">
+                                {time}
+                                <button
+                                  onClick={() => removeTimeFromDate(ts.date, time)}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </Badge>
+                            ))}
+                          </div>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 shrink-0"
+                            onClick={() => handleDateSelect(ts.date)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <p>Select dates from the calendar to add time slots</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EditPoll;

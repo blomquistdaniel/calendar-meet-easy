@@ -155,9 +155,11 @@ const Index = () => {
                             <BarChart3 className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="icon" title="Edit Poll" disabled>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
+                        <Link to={`/p/${poll.short_code}/edit?admin=${poll.admin_short_code}`}>
+                          <Button variant="ghost" size="icon" title="Edit Poll">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" title="Delete Poll" className="text-destructive hover:text-destructive">
