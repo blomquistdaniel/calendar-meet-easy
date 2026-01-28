@@ -1,51 +1,113 @@
 
 
-## Meeting Poll Scheduler - "When2Meet" Style
+# Shorter URLs for Meeting Poll Scheduler
 
-A simple, modern tool for scheduling meetings by collecting availability from participants.
+## Current State
 
-### Core Flow
+Your URLs use UUIDs (36 characters each):
+- Poll ID: `2c28312d-f484-4170-b012-47721f8cdbe9`
+- Admin Token: `fab866ef-6bab-4de1-a328-6fbbdb1d336e`
 
-**1. Create a Poll**
-- Enter a title for your meeting/event (e.g., "Team Standup Planning")
-- Optionally add a description with meeting details
-- Select multiple potential dates from an interactive calendar
-- For each date, optionally add specific time slots (e.g., "10:00 AM", "2:00 PM")
-- Click "Create Poll" to generate your unique poll
+**Example current URL:**
+```
+/poll/2c28312d-f484-4170-b012-47721f8cdbe9/vote
+```
 
-**2. Share Your Poll**
-- Get two links after creation:
-  - **Voting link** - share with participants
-  - **Admin link** - keep private to view all results
-- Copy the voting link and share via email, Slack, etc.
+## Solution: Short Codes
 
-**3. Participants Vote**
-- Participants enter their name and email
-- View all proposed dates/times in a clean grid
-- Vote Yes ✓ / No ✗ / Maybe ~ for each option
-- Optionally add comments to explain availability
-- Submit vote (no account needed)
+Add `short_code` and `admin_short_code` columns to the `polls` table using alphanumeric strings.
 
-**4. View Results (Admin Only)**
-- Access with your private admin link
-- See all responses in a summary table
-- Each participant's votes displayed in rows
-- Visual highlighting shows the best options (most "Yes" votes)
-- View individual comments from participants
-- Easily identify the winning time slot
+**Example new URL:**
+```
+/p/Kj7mX9/vote
+```
 
-### Design & Experience
+That's a reduction from 60+ characters to just 6-8 characters per code.
 
-- **Modern, polished look** with smooth interactions
-- Clean calendar picker for selecting dates
-- Color-coded votes (green for yes, red for no, yellow for maybe)
-- Mobile-responsive design so participants can vote on any device
-- Clear visual summary showing which time works best
+---
 
-### Technical Approach
+## Implementation Plan
 
-- **Backend**: Supabase database to store polls and votes
-- **No authentication required** - polls identified by unique IDs
-- **Admin access** via a secret admin token in the URL
-- **Real-time updates** so you see new votes as they come in
+### 1. Database Changes
+
+Add two new columns to the `polls` table:
+- `short_code` - 6-8 character alphanumeric code for public access (voting link)
+- `admin_short_code` - 8-10 character alphanumeric code for admin access
+
+Create a database function to generate unique short codes automatically on insert.
+
+### 2. Route Updates
+
+Update all routes in `App.tsx`:
+
+| Current Route | New Route |
+|---------------|-----------|
+| `/poll/:pollId/vote` | `/p/:code/vote` |
+| `/poll/:pollId/results` | `/p/:code/results` |
+| `/poll/:pollId/share` | `/p/:code/share` |
+| `/poll/:pollId/thanks` | `/p/:code/thanks` |
+
+### 3. Page Updates
+
+Update all pages to:
+- Use `code` param instead of `pollId`
+- Query database using `short_code` instead of `id`
+- Use `admin_short_code` instead of `admin_token` in URLs
+
+**Files to update:**
+- `src/App.tsx`
+- `src/pages/CreatePoll.tsx`
+- `src/pages/SharePoll.tsx`
+- `src/pages/VotePoll.tsx`
+- `src/pages/PollResults.tsx`
+- `src/pages/ThankYou.tsx`
+- `src/pages/Index.tsx`
+
+---
+
+## URL Comparison
+
+| Page | Before | After |
+|------|--------|-------|
+| Voting | `/poll/2c28312d-f484-4170-b012-47721f8cdbe9/vote` | `/p/Kj7mX9/vote` |
+| Results | `/poll/.../results?admin=fab866ef-...` | `/p/Kj7mX9/results?admin=Hq9pL3nW` |
+| Share | `/poll/.../share?admin=fab866ef-...` | `/p/Kj7mX9/share?admin=Hq9pL3nW` |
+
+---
+
+## Technical Details
+
+### Short Code Generation
+
+A Postgres function will generate codes using:
+- Characters: `ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789` (excludes confusing characters like 0/O, 1/l/I)
+- Length: 6 characters for poll codes, 8 for admin codes
+- Unique constraint ensures no duplicates
+
+### Database Migration
+
+```sql
+-- Add new columns
+ALTER TABLE public.polls 
+  ADD COLUMN short_code TEXT UNIQUE,
+  ADD COLUMN admin_short_code TEXT UNIQUE;
+
+-- Create function to generate short codes
+CREATE OR REPLACE FUNCTION generate_short_code(length INT) ...
+
+-- Set defaults for new rows
+ALTER TABLE public.polls 
+  ALTER COLUMN short_code SET DEFAULT generate_short_code(6),
+  ALTER COLUMN admin_short_code SET DEFAULT generate_short_code(8);
+
+-- Backfill existing polls
+UPDATE public.polls SET 
+  short_code = generate_short_code(6),
+  admin_short_code = generate_short_code(8)
+WHERE short_code IS NULL;
+```
+
+### Collision Handling
+
+The function will retry with a new code if a duplicate is generated (extremely rare with 6+ characters from 57 character set = billions of combinations).
 
