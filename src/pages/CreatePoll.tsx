@@ -316,32 +316,32 @@ const CreatePoll = () => {
                                   />
                                 </div>
                               </div>
-                              {startTime && (
-                                <div className="flex flex-wrap gap-1">
-                                  <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
-                                  {[15, 30, 45, 60, 90, 120].map((minutes) => {
-                                    const calculateEndTime = () => {
-                                      const [h, m] = startTime.split(':').map(Number);
-                                      const totalMinutes = h * 60 + m + minutes;
-                                      const endH = Math.floor(totalMinutes / 60) % 24;
-                                      const endM = totalMinutes % 60;
-                                      return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
-                                    };
-                                    return (
-                                      <Button
-                                        key={minutes}
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 px-2 text-xs"
-                                        onClick={() => setEndTime(calculateEndTime())}
-                                      >
-                                        {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
-                                      </Button>
-                                    );
-                                  })}
-                                </div>
-                              )}
+                              <div className="flex flex-wrap gap-1">
+                                <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
+                                {[15, 30, 45, 60, 90, 120].map((minutes) => {
+                                  const calculateEndTime = () => {
+                                    if (!startTime) return "";
+                                    const [h, m] = startTime.split(':').map(Number);
+                                    const totalMinutes = h * 60 + m + minutes;
+                                    const endH = Math.floor(totalMinutes / 60) % 24;
+                                    const endM = totalMinutes % 60;
+                                    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+                                  };
+                                  return (
+                                    <Button
+                                      key={minutes}
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-7 px-2 text-xs"
+                                      disabled={!startTime}
+                                      onClick={() => setEndTime(calculateEndTime())}
+                                    >
+                                      {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
                               <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
                                 <Plus className="h-4 w-4" />
                                 Add
