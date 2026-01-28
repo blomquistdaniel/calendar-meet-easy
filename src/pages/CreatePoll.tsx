@@ -219,42 +219,43 @@ const CreatePoll = () => {
               <CardDescription>Click on dates to add or remove them from the poll</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-center">
-                <Calendar
-                  mode="multiple"
-                  selected={selectedDates}
-                  onSelect={(dates) => {
-                    if (!dates) return;
-                    // Find which date was added or removed
-                    const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
-                    const newSet = new Set(dates.map(d => format(d, "yyyy-MM-dd")));
-                    
-                    // Find added date
-                    for (const d of dates) {
-                      const key = format(d, "yyyy-MM-dd");
-                      if (!prevSet.has(key)) {
-                        handleDateSelect(d);
-                        return;
+              <div className="flex flex-col lg:flex-row gap-6">
+                <div className="flex-shrink-0">
+                  <Calendar
+                    mode="multiple"
+                    selected={selectedDates}
+                    onSelect={(dates) => {
+                      if (!dates) return;
+                      // Find which date was added or removed
+                      const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
+                      const newSet = new Set(dates.map(d => format(d, "yyyy-MM-dd")));
+                      
+                      // Find added date
+                      for (const d of dates) {
+                        const key = format(d, "yyyy-MM-dd");
+                        if (!prevSet.has(key)) {
+                          handleDateSelect(d);
+                          return;
+                        }
                       }
-                    }
-                    
-                    // Find removed date
-                    for (const d of selectedDates) {
-                      const key = format(d, "yyyy-MM-dd");
-                      if (!newSet.has(key)) {
-                        handleDateSelect(d);
-                        return;
+                      
+                      // Find removed date
+                      for (const d of selectedDates) {
+                        const key = format(d, "yyyy-MM-dd");
+                        if (!newSet.has(key)) {
+                          handleDateSelect(d);
+                          return;
+                        }
                       }
-                    }
-                  }}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                  className="rounded-md border pointer-events-auto"
-                />
-              </div>
+                    }}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    className="rounded-md border pointer-events-auto"
+                  />
+                </div>
 
-              {selectedDates.length > 0 && (
-                <div className="mt-6 space-y-4">
-                  <h4 className="font-medium text-sm">Selected Dates & Time Slots</h4>
+                {selectedDates.length > 0 && (
+                  <div className="flex-1 space-y-4">
+                    <h4 className="font-medium text-sm">Selected Dates & Time Slots</h4>
                   {timeSlots.map((ts) => (
                     <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
                       <div className="flex items-center justify-between mb-3">
@@ -386,8 +387,9 @@ const CreatePoll = () => {
                       </div>
                     </div>
                   ))}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
