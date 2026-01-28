@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
-import PageNavigation from "@/components/PageNavigation";
+
 import { getTimezoneLabel, getBrowserTimezone, convertTimeSlot, TIMEZONES } from "@/lib/timezones";
 type VoteValue = "yes" | "no" | "maybe" | null;
 
@@ -278,13 +278,7 @@ const VotePoll = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl py-8 px-4">
-        <div className="flex gap-6 items-start">
-          {/* Navigation buttons */}
-          <PageNavigation className="shrink-0" />
-
-          {/* Main content */}
-          <div className="flex-1 max-w-3xl">
+      <div className="container max-w-2xl py-8 px-4">
             {/* Poll Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">{poll.title}</h1>
@@ -524,8 +518,6 @@ const VotePoll = () => {
               </div>
             </>
           )}
-        </div>
-          </div>
         </div>
       </div>
     </div>
