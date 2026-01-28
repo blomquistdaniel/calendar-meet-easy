@@ -301,7 +301,7 @@ const CreatePoll = () => {
                       <div className="flex gap-2">
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 w-20">
                               <Clock className="h-4 w-4" />
                               Add
                             </Button>
@@ -366,7 +366,7 @@ const CreatePoll = () => {
                         {ts.times.length > 0 && selectedDates.length > 1 && (
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="gap-2">
+                              <Button variant="outline" size="sm" className="gap-2 w-20">
                                 <Copy className="h-4 w-4" />
                                 Copy
                               </Button>
