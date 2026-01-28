@@ -12,7 +12,7 @@ const PageNavigation = ({ showBack = true, className }: PageNavigationProps) => 
 
   return (
     <div className={className}>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2">
         <Button variant="outline" asChild className="gap-2">
           <Link to="/">
             <Home className="h-4 w-4" />
