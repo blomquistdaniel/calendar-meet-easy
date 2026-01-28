@@ -196,13 +196,13 @@ const CreatePoll = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-5xl py-8 px-4">
-        <div className="flex gap-6 items-start max-w-4xl">
+      <div className="container max-w-6xl py-8 px-4">
+        <div className="flex gap-6 items-start">
           {/* Navigation buttons - aligned with top of cards */}
           <PageNavigation className="shrink-0 pt-0" />
 
           {/* Main content */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-w-0">
           {/* Left Column: Meeting Details + Calendar */}
           <div className="space-y-6">
             {/* Title & Description */}
