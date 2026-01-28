@@ -11,6 +11,7 @@ export const TIMEZONES = [
   { value: "Europe/London", label: "London (GMT)", offset: "+00:00" },
   { value: "Europe/Paris", label: "Paris (CET)", offset: "+01:00" },
   { value: "Europe/Berlin", label: "Berlin (CET)", offset: "+01:00" },
+  { value: "Europe/Stockholm", label: "Stockholm (CET)", offset: "+01:00" },
   { value: "Europe/Helsinki", label: "Helsinki (EET)", offset: "+02:00" },
   { value: "Europe/Moscow", label: "Moscow (MSK)", offset: "+03:00" },
   { value: "Asia/Dubai", label: "Dubai (GST)", offset: "+04:00" },
