@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
-import { getTimezoneLabel, getBrowserTimezone, convertTimeSlot } from "@/lib/timezones";
+import { getTimezoneLabel, getBrowserTimezone, convertTimeSlot, TIMEZONES } from "@/lib/timezones";
 type VoteValue = "yes" | "no" | "maybe" | null;
 
 interface PollOption {
@@ -54,9 +55,12 @@ const VotePoll = () => {
   const [existingVotes, setExistingVotes] = useState<ExistingVote[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [useLocalTimezone, setUseLocalTimezone] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState<string | null>(null);
   
   const browserTimezone = getBrowserTimezone();
-  const displayTimezone = useLocalTimezone ? browserTimezone : poll?.timezone || "UTC";
+  // Use manually selected timezone if set, otherwise browser timezone when toggle is on
+  const localTimezone = selectedTimezone || browserTimezone;
+  const displayTimezone = useLocalTimezone ? localTimezone : poll?.timezone || "UTC";
 
   useEffect(() => {
     const fetchPoll = async () => {
@@ -287,21 +291,44 @@ const VotePoll = () => {
               {poll.description && (
                 <p className="text-muted-foreground mt-2">{poll.description}</p>
               )}
-              <div className="flex items-center justify-between mt-3 p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Globe className="h-4 w-4" />
-                  <span>Times shown in {getTimezoneLabel(displayTimezone)}</span>
-                </div>
-                {browserTimezone !== poll.timezone && (
+              <div className="mt-3 p-3 rounded-lg bg-muted/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Globe className="h-4 w-4" />
+                    <span>Times shown in {getTimezoneLabel(displayTimezone)}</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Label htmlFor="timezone-toggle" className="text-sm text-muted-foreground cursor-pointer">
-                      Show in my timezone
+                      Convert times
                     </Label>
                     <Switch
                       id="timezone-toggle"
                       checked={useLocalTimezone}
                       onCheckedChange={setUseLocalTimezone}
                     />
+                  </div>
+                </div>
+                
+                {useLocalTimezone && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="timezone-select" className="text-sm text-muted-foreground whitespace-nowrap">
+                      Your timezone:
+                    </Label>
+                    <Select 
+                      value={selectedTimezone || browserTimezone} 
+                      onValueChange={setSelectedTimezone}
+                    >
+                      <SelectTrigger id="timezone-select" className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIMEZONES.map((tz) => (
+                          <SelectItem key={tz.value} value={tz.value}>
+                            {tz.label} ({tz.offset})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
