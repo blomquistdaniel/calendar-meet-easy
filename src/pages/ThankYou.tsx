@@ -27,12 +27,9 @@ const ThankYou = () => {
                 Your vote has been recorded. The poll organizer will review all responses and get back to everyone soon.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <Button asChild variant="outline" className="w-full">
                 <Link to={`/p/${code}/vote`}>Change My Vote</Link>
-              </Button>
-              <Button asChild variant="ghost" className="w-full">
-                <Link to="/">Create Your Own Poll</Link>
               </Button>
             </CardContent>
           </Card>
