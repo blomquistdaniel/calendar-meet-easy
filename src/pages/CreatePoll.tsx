@@ -271,21 +271,113 @@ const CreatePoll = () => {
                 <div className="grid grid-cols-1 gap-3">
                 {timeSlots.map((ts) => (
                   <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
-                        <div className="flex-1" />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 shrink-0"
-                          onClick={() => handleDateSelect(ts.date)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <div className="flex items-start gap-4">
+                        {/* Left column: Date + Buttons */}
+                        <div className="flex flex-col gap-3">
+                          <span className="font-medium whitespace-nowrap">{format(ts.date, "EEE, MMM d, yyyy")}</span>
+                          <div className="flex gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm" className="gap-2 w-20">
+                                  <Clock className="h-4 w-4" />
+                                  Add
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-4" align="start">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-xs text-muted-foreground">Start</Label>
+                                      <Input
+                                        type="time"
+                                        value={startTime}
+                                        onChange={(e) => setStartTime(e.target.value)}
+                                        className="w-28"
+                                      />
+                                    </div>
+                                    <span className="mt-5 text-muted-foreground">–</span>
+                                    <div className="space-y-1">
+                                      <Label className="text-xs text-muted-foreground">End</Label>
+                                      <Input
+                                        type="time"
+                                        value={endTime}
+                                        onChange={(e) => setEndTime(e.target.value)}
+                                        className="w-28"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1">
+                                    <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
+                                    {[15, 30, 45, 60, 90, 120].map((minutes) => {
+                                      const calculateEndTime = () => {
+                                        if (!startTime) return "";
+                                        const [h, m] = startTime.split(':').map(Number);
+                                        const totalMinutes = h * 60 + m + minutes;
+                                        const endH = Math.floor(totalMinutes / 60) % 24;
+                                        const endM = totalMinutes % 60;
+                                        return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
+                                      };
+                                      return (
+                                        <Button
+                                          key={minutes}
+                                          type="button"
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 px-2 text-xs"
+                                          disabled={!startTime}
+                                          onClick={() => setEndTime(calculateEndTime())}
+                                        >
+                                          {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
+                                        </Button>
+                                      );
+                                    })}
+                                  </div>
+                                  <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
+                                    <Plus className="h-4 w-4" />
+                                    Add
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
 
-                      {ts.times.length > 0 && (
-                        <div className="flex flex-wrap justify-end gap-1.5 mb-3">
+                            {ts.times.length > 0 && selectedDates.length > 1 && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" size="sm" className="gap-2 w-20">
+                                    <Copy className="h-4 w-4" />
+                                    Copy
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-56 p-3" align="start">
+                                  <div className="space-y-2">
+                                    <Label className="text-xs text-muted-foreground">Copy time slots to:</Label>
+                                    {timeSlots
+                                      .filter(otherTs => format(otherTs.date, "yyyy-MM-dd") !== format(ts.date, "yyyy-MM-dd"))
+                                      .map((otherTs) => (
+                                        <div
+                                          key={format(otherTs.date, "yyyy-MM-dd")}
+                                          className="flex items-center justify-between py-1"
+                                        >
+                                          <span className="text-sm">{format(otherTs.date, "EEE, MMM d")}</span>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-7 px-2"
+                                            onClick={() => copyTimeSlotsToDate(ts.date, otherTs.date)}
+                                          >
+                                            Copy
+                                          </Button>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right column: Time suggestions */}
+                        <div className="flex-1 flex flex-col items-end gap-1.5">
                           {ts.times.map((time) => (
                             <Badge key={time} variant="secondary" className="gap-1">
                               {time}
@@ -298,106 +390,16 @@ const CreatePoll = () => {
                             </Badge>
                           ))}
                         </div>
-                      )}
 
-                      <div className="flex gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2 w-20">
-                              <Clock className="h-4 w-4" />
-                              Add
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-4" align="start">
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">Start</Label>
-                                  <Input
-                                    type="time"
-                                    value={startTime}
-                                    onChange={(e) => setStartTime(e.target.value)}
-                                    className="w-28"
-                                  />
-                                </div>
-                                <span className="mt-5 text-muted-foreground">–</span>
-                                <div className="space-y-1">
-                                  <Label className="text-xs text-muted-foreground">End</Label>
-                                  <Input
-                                    type="time"
-                                    value={endTime}
-                                    onChange={(e) => setEndTime(e.target.value)}
-                                    className="w-28"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-1">
-                                <Label className="text-xs text-muted-foreground w-full mb-1">Quick duration:</Label>
-                                {[15, 30, 45, 60, 90, 120].map((minutes) => {
-                                  const calculateEndTime = () => {
-                                    if (!startTime) return "";
-                                    const [h, m] = startTime.split(':').map(Number);
-                                    const totalMinutes = h * 60 + m + minutes;
-                                    const endH = Math.floor(totalMinutes / 60) % 24;
-                                    const endM = totalMinutes % 60;
-                                    return `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`;
-                                  };
-                                  return (
-                                    <Button
-                                      key={minutes}
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-7 px-2 text-xs"
-                                      disabled={!startTime}
-                                      onClick={() => setEndTime(calculateEndTime())}
-                                    >
-                                      {minutes < 60 ? `${minutes}m` : `${minutes / 60}h`}
-                                    </Button>
-                                  );
-                                })}
-                              </div>
-                              <Button size="sm" onClick={() => addTimeToDate(ts.date)} className="w-full gap-2">
-                                <Plus className="h-4 w-4" />
-                                Add
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-
-                        {ts.times.length > 0 && selectedDates.length > 1 && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="gap-2 w-20">
-                                <Copy className="h-4 w-4" />
-                                Copy
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-56 p-3" align="start">
-                              <div className="space-y-2">
-                                <Label className="text-xs text-muted-foreground">Copy time slots to:</Label>
-                                {timeSlots
-                                  .filter(otherTs => format(otherTs.date, "yyyy-MM-dd") !== format(ts.date, "yyyy-MM-dd"))
-                                  .map((otherTs) => (
-                                    <div
-                                      key={format(otherTs.date, "yyyy-MM-dd")}
-                                      className="flex items-center justify-between py-1"
-                                    >
-                                      <span className="text-sm">{format(otherTs.date, "EEE, MMM d")}</span>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 px-2"
-                                        onClick={() => copyTimeSlotsToDate(ts.date, otherTs.date)}
-                                      >
-                                        Copy
-                                      </Button>
-                                    </div>
-                                  ))}
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        )}
+                        {/* Remove date button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 shrink-0"
+                          onClick={() => handleDateSelect(ts.date)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
