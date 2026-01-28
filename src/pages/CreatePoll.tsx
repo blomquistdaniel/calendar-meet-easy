@@ -174,7 +174,7 @@ const CreatePoll = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container max-w-3xl py-8 px-4">
+      <div className="container max-w-5xl py-8 px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Create a Meeting Poll</h1>
           <p className="text-muted-foreground mt-2">
@@ -183,79 +183,78 @@ const CreatePoll = () => {
         </div>
 
         <div className="space-y-6">
-          {/* Title & Description */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Meeting Details</CardTitle>
-              <CardDescription>Give your meeting a name and optional description</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Team Standup Planning"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add any details about the meeting..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Date Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Dates</CardTitle>
-              <CardDescription>Click on dates to add or remove them from the poll</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-shrink-0">
-                  <Calendar
-                    mode="multiple"
-                    selected={selectedDates}
-                    onSelect={(dates) => {
-                      if (!dates) return;
-                      // Find which date was added or removed
-                      const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
-                      const newSet = new Set(dates.map(d => format(d, "yyyy-MM-dd")));
-                      
-                      // Find added date
-                      for (const d of dates) {
-                        const key = format(d, "yyyy-MM-dd");
-                        if (!prevSet.has(key)) {
-                          handleDateSelect(d);
-                          return;
-                        }
-                      }
-                      
-                      // Find removed date
-                      for (const d of selectedDates) {
-                        const key = format(d, "yyyy-MM-dd");
-                        if (!newSet.has(key)) {
-                          handleDateSelect(d);
-                          return;
-                        }
-                      }
-                    }}
-                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                    className="rounded-md border pointer-events-auto"
+          {/* Top Row: Meeting Details + Calendar */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Title & Description */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Meeting Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g., Team Standup Planning"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Add any details about the meeting..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-                {selectedDates.length > 0 && (
-                  <div className="flex-1 space-y-4">
-                    <h4 className="font-medium text-sm">Selected Dates & Time Slots</h4>
+            {/* Calendar */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Select Dates</CardTitle>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <Calendar
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={(dates) => {
+                    if (!dates) return;
+                    const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
+                    const newSet = new Set(dates.map(d => format(d, "yyyy-MM-dd")));
+                    
+                    for (const d of dates) {
+                      const key = format(d, "yyyy-MM-dd");
+                      if (!prevSet.has(key)) {
+                        handleDateSelect(d);
+                        return;
+                      }
+                    }
+                    
+                    for (const d of selectedDates) {
+                      const key = format(d, "yyyy-MM-dd");
+                      if (!newSet.has(key)) {
+                        handleDateSelect(d);
+                        return;
+                      }
+                    }
+                  }}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  className="rounded-md border pointer-events-auto"
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Time Slots Grid - 2 columns */}
+          {selectedDates.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {timeSlots.map((ts) => (
                     <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50">
                       <div className="flex items-center justify-between mb-3">
@@ -387,11 +386,9 @@ const CreatePoll = () => {
                       </div>
                     </div>
                   ))}
-                  </div>
-                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
 
           {/* Submit */}
           <Button 
