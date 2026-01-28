@@ -179,20 +179,19 @@ const CreatePoll = () => {
           {/* Left Column: Meeting Details + Calendar */}
           <div className="space-y-6">
             {/* Title & Description */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Link to="/">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Home className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <CardTitle className="text-lg flex-1 text-center pr-8">Meeting Details</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="title">Title *</Label>
+            <div className="flex items-start gap-3">
+              <Link to="/">
+                <Button variant="ghost" size="icon" className="h-8 w-8 mt-1">
+                  <Home className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Card className="flex-1">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg text-center">Meeting Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="title">Title *</Label>
                   <Input
                     id="title"
                     placeholder="e.g., Team Standup Planning"
@@ -212,6 +211,7 @@ const CreatePoll = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
 
             {/* Calendar */}
             <Card>
