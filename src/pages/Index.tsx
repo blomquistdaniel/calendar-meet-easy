@@ -1,73 +1,108 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Calendar, Users, CheckCircle, ArrowRight } from "lucide-react";
+import { Plus, Pencil, Search } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+
+interface Poll {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  admin_token: string;
+}
 
 const Index = () => {
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPolls = async () => {
+      const { data, error } = await supabase
+        .from("polls")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setPolls(data);
+      }
+      setLoading(false);
+    };
+
+    fetchPolls();
+  }, []);
+
+  const filteredPolls = polls.filter((poll) =>
+    poll.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="container max-w-4xl py-16 px-4">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 mb-6">
-            <Calendar className="h-8 w-8 text-primary" />
+      <div className="container max-w-3xl py-8 px-4">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold tracking-tight">My Polls</h1>
+          <Link to="/create">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              New
+            </Button>
+          </Link>
+        </div>
+
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search polls..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {loading ? (
+          <div className="text-center py-12 text-muted-foreground">
+            Loading polls...
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-            Find the Perfect Meeting Time
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Create a poll, share it with your team, and let everyone vote on the best time. 
-            No signups required.
-          </p>
-        </div>
-
-        <div className="flex justify-center mb-16">
-          <Button asChild size="lg" className="gap-2 text-lg px-8">
-            <Link to="/create">
-              Create a Poll
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-
-        {/* How it Works */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="text-center p-6 rounded-xl bg-muted/30">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-              <Calendar className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">1. Pick Dates</h3>
-            <p className="text-sm text-muted-foreground">
-              Select potential dates and times for your meeting from an interactive calendar.
+        ) : filteredPolls.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">
+              {searchQuery ? "No polls match your search." : "No polls yet."}
             </p>
+            {!searchQuery && (
+              <Link to="/create">
+                <Button variant="outline" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create your first poll
+                </Button>
+              </Link>
+            )}
           </div>
-
-          <div className="text-center p-6 rounded-xl bg-muted/30">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">2. Share & Vote</h3>
-            <p className="text-sm text-muted-foreground">
-              Share the link with participants. They vote Yes, No, or Maybe on each option.
-            </p>
+        ) : (
+          <div className="space-y-3">
+            {filteredPolls.map((poll) => (
+              <Card key={poll.id} className="hover:bg-muted/50 transition-colors">
+                <CardContent className="flex items-center justify-between p-4">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium truncate">{poll.title}</h3>
+                    {poll.description && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {poll.description}
+                      </p>
+                    )}
+                  </div>
+                  <Link to={`/poll/${poll.id}/results?token=${poll.admin_token}`}>
+                    <Button variant="ghost" size="icon" className="ml-4 shrink-0">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-
-          <div className="text-center p-6 rounded-xl bg-muted/30">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
-              <CheckCircle className="h-6 w-6 text-primary" />
-            </div>
-            <h3 className="font-semibold mb-2">3. Pick the Best</h3>
-            <p className="text-sm text-muted-foreground">
-              View results in real-time and easily identify the time that works for everyone.
-            </p>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">
-            ✓ No account needed &nbsp;·&nbsp; ✓ Private admin results &nbsp;·&nbsp; ✓ Real-time updates
-          </p>
-        </div>
+        )}
       </div>
     </div>
   );
