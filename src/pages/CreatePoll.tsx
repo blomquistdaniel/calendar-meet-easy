@@ -224,6 +224,7 @@ const CreatePoll = () => {
                 <Calendar
                   mode="multiple"
                   selected={selectedDates}
+                  weekStartsOn={1}
                   onSelect={(dates) => {
                     if (!dates) return;
                     const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
