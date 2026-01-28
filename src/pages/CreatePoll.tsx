@@ -268,7 +268,7 @@ const CreatePoll = () => {
             {selectedDates.length > 0 ? (
               <>
                 <h3 className="font-semibold text-lg">Selected Dates & Time Slots</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-3">
                 {timeSlots.map((ts) => (
                   <div key={format(ts.date, "yyyy-MM-dd")} className="p-4 rounded-lg bg-muted/50 min-w-[280px]">
                       <div className="flex items-center justify-between mb-3">
