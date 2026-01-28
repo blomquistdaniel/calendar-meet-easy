@@ -54,6 +54,7 @@ export type Database = {
           description: string | null
           id: string
           short_code: string
+          timezone: string
           title: string
         }
         Insert: {
@@ -63,6 +64,7 @@ export type Database = {
           description?: string | null
           id?: string
           short_code?: string
+          timezone?: string
           title: string
         }
         Update: {
@@ -72,6 +74,7 @@ export type Database = {
           description?: string | null
           id?: string
           short_code?: string
+          timezone?: string
           title?: string
         }
         Relationships: []

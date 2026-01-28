@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Plus, X, Clock, Copy } from "lucide-react";
+import { Plus, X, Clock, Copy, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
-
+import { TIMEZONES, getBrowserTimezone } from "@/lib/timezones";
 interface TimeSlot {
   date: Date;
   times: string[];
@@ -28,6 +29,7 @@ const CreatePoll = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [lastDuration, setLastDuration] = useState<number | null>(null);
+  const [timezone, setTimezone] = useState(getBrowserTimezone());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const calculateEndTime = (start: string, minutes: number) => {
@@ -149,7 +151,7 @@ const CreatePoll = () => {
       // Create the poll
       const { data: poll, error: pollError } = await supabase
         .from("polls")
-        .insert({ title: title.trim(), description: description.trim() || null })
+        .insert({ title: title.trim(), description: description.trim() || null, timezone })
         .select()
         .single();
 
@@ -229,6 +231,24 @@ const CreatePoll = () => {
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
                   />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="timezone" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Time Zone
+                  </Label>
+                  <Select value={timezone} onValueChange={setTimezone}>
+                    <SelectTrigger id="timezone">
+                      <SelectValue placeholder="Select time zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TIMEZONES.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label} ({tz.offset})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>

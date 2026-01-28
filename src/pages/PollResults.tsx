@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams, useNavigate, Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { Check, X, HelpCircle, Crown, MessageSquare, Users, RefreshCw, Link2 } from "lucide-react";
+import { Check, X, HelpCircle, Crown, MessageSquare, Users, RefreshCw, Link2, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +11,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
+import { getTimezoneLabel } from "@/lib/timezones";
 
 interface Poll {
   id: string;
   title: string;
   description: string | null;
   admin_token: string;
+  timezone: string;
 }
 
 interface PollOption {
@@ -183,6 +185,10 @@ const PollResults = () => {
                 {poll.description && (
                   <p className="text-muted-foreground mt-2">{poll.description}</p>
                 )}
+                <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                  <Globe className="h-4 w-4" />
+                  <span>Times shown in {getTimezoneLabel(poll.timezone)}</span>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button 
