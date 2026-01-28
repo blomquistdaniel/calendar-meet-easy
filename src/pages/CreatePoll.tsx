@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Plus, X, Clock, Copy } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, X, Clock, Copy, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,6 +176,12 @@ const CreatePoll = () => {
     <div className="min-h-screen bg-background">
       <div className="container max-w-5xl py-8 px-4">
         <div className="mb-8">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="mb-4 gap-2">
+              <Home className="h-4 w-4" />
+              Home
+            </Button>
+          </Link>
           <h1 className="text-3xl font-bold tracking-tight">Create a Meeting Poll</h1>
           <p className="text-muted-foreground mt-2">
             Select potential dates and times, then share with participants to find the best time.
