@@ -243,12 +243,12 @@ const CreatePoll = () => {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg text-center">Select Dates</CardTitle>
               </CardHeader>
-              <CardContent className="flex justify-center px-2">
+              <CardContent className="px-4">
                 <Calendar
                   mode="multiple"
                   selected={selectedDates}
                   weekStartsOn={1}
-                  className="rounded-md border pointer-events-auto w-full scale-[1.15] origin-center my-4"
+                  className="rounded-md border pointer-events-auto w-full"
                   onSelect={(dates) => {
                     if (!dates) return;
                     const prevSet = new Set(selectedDates.map(d => format(d, "yyyy-MM-dd")));
