@@ -177,15 +177,11 @@ const CreatePoll = () => {
       <div className="container max-w-5xl py-8 px-4">
         <div className="mb-8">
           <Link to="/">
-            <Button variant="ghost" size="sm" className="mb-4 gap-2">
+            <Button variant="ghost" size="sm" className="gap-2">
               <Home className="h-4 w-4" />
               Home
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">Create a Meeting Poll</h1>
-          <p className="text-muted-foreground mt-2">
-            Select potential dates and times, then share with participants to find the best time.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
