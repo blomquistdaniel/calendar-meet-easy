@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format, parseISO } from "date-fns";
-import { Check, X, HelpCircle, Send, Pencil, Trash2, AlertCircle } from "lucide-react";
+import { Check, X, HelpCircle, Send, Pencil, Trash2, AlertCircle, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import PageNavigation from "@/components/PageNavigation";
+import { getTimezoneLabel } from "@/lib/timezones";
 
 type VoteValue = "yes" | "no" | "maybe" | null;
 
@@ -25,6 +26,7 @@ interface Poll {
   id: string;
   title: string;
   description: string | null;
+  timezone: string;
 }
 
 interface ExistingVote {
@@ -281,6 +283,10 @@ const VotePoll = () => {
               {poll.description && (
                 <p className="text-muted-foreground mt-2">{poll.description}</p>
               )}
+              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                <Globe className="h-4 w-4" />
+                <span>Times shown in {getTimezoneLabel(poll.timezone)}</span>
+              </div>
             </div>
 
         <div className="space-y-6">
