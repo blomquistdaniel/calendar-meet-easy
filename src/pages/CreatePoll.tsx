@@ -207,7 +207,7 @@ const CreatePoll = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-4xl">
           {/* Left Column: Meeting Details + Calendar */}
           <div className="space-y-6">
             {/* Title & Description */}
